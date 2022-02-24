@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
+use App\Scopes\UserActiveScope;
 
 class User extends Authenticatable
 {
@@ -20,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'first_name',
         'last_name',
+        'user_name',
         'isActive',
         'email',
         'password',
@@ -43,9 +45,30 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    
+
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . " " . $this->last_name;
+    }
+
+    public function setUserNameAttribute($username)
+    {
+        $this->attributes['user_name'] = Str::slug($username);
+    }
+
+    public function scopeIsAdmin($query)
+    {
+        return $query->where("isAdmin", true);
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new UserActiveScope());
+    }
+
     public function posts()
     {
         return $this->hasMany(Post::class);
     }
+
 }
