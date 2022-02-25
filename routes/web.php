@@ -18,7 +18,7 @@ use App\Http\Controllers\UserController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::resource('users', UserController::class);
+Route::resource('users', UserController::class)->middleware('checkAdmin');
 Route::prefix('posts')->name('posts.')->controller(PostController::class)->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/', 'store')->name('store');
