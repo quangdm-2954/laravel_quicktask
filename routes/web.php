@@ -31,3 +31,7 @@ Route::prefix('posts')->name('posts.')->controller(PostController::class)->group
 });
 Route::get('language/{language}',[LangController::class,'changeLanguage'])->name('language');
 
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
