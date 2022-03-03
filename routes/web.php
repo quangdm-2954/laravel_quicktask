@@ -15,10 +15,6 @@ use App\Http\Controllers\LangController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::get('/', function () {
-    return view('welcome');
-});
 Route::resource('users', UserController::class)->middleware('checkAdmin');
 Route::prefix('posts')->name('posts.')->controller(PostController::class)->group(function () {
     Route::get('/', 'index')->name('index');
@@ -34,4 +30,4 @@ Route::get('language/{language}',[LangController::class,'changeLanguage'])->name
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
