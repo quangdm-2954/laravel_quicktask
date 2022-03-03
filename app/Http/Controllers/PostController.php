@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
+use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -13,7 +17,17 @@ class PostController extends Controller
      */
     public function index()
     {
-        return view('pages.posts');
+        try {
+            $posts = DB::table('posts')->join('users', 'users.id', '=', 'posts.author_id')
+                ->select('posts.*', 'users.username')
+                ->where('author_id',Auth::user()->id)
+                ->orderBy('posts.id', 'desc')
+                ->paginate(config('app.PER_PAGE'));
+
+            return view('pages.posts.index', compact('posts'));
+        } catch (\Exception $e) {
+            abort(500);
+        }
     }
 
     /**
@@ -23,7 +37,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        return 'Post Create';
+        return view('pages.posts.create');
     }
 
     /**
@@ -32,9 +46,22 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        return 'Post Store';
+        try {
+            $data  = $request->except('_token','_method');
+
+            $data['slug'] = Str::slug($request->title);
+
+            $data['author_id'] = Auth::user()->id;
+
+            $rs = DB::table('posts')->insert($data);
+
+            return $this->redirect($rs, __('Create Success !'));
+
+        } catch (\Exception $e) {
+            abort(500);
+        }
     }
 
     /**
@@ -45,7 +72,14 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        return 'Post Show';
+        try {
+            $post = DB::table('posts')->where('id', $id)->first();
+
+            return view('pages.posts.show', compact('post'));
+
+        } catch (\Exception $e) {
+            abort(500);
+        }
     }
 
     /**
@@ -56,19 +90,38 @@ class PostController extends Controller
      */
     public function edit($id)
     {
-        return 'Post Edit';
+        try {
+            $post = DB::table('posts')->where('id', $id)->first();
+
+            return view('pages.posts.edit', compact('post'));
+        } catch (\Exception $e) {
+            abort(500);
+        }
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified resource in storage.validated
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdatePostRequest $request, $id)
     {
-        return 'Post Update';
+        try {
+            $data  = $request->except('_token','_method');
+
+            $data['slug'] = Str::slug($request->title);
+
+            $data['author_id'] = Auth::user()->id;
+
+            $rs = DB::table('posts')->where('id', $id)->update($data);
+
+            return $this->redirect($rs, __('Update Success !'));
+
+        } catch (\Exception $e) {
+            abort(500);
+        }
     }
 
     /**
@@ -79,6 +132,22 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        return 'Post Destroy';
+        try {
+            $rs = DB::table('posts')->where('id', $id)->delete();
+
+            return $this->redirect($rs, __('Delete Success !'));
+
+        } catch (\Exception $e) {
+            abort(500);
+        }
+    }
+
+    protected function redirect($rs, $mess)
+    {
+        if ($rs) {
+            return back()->with('success', $mess);
+        } else {
+            return back()->with('error', 'Have Error !');
+        }
     }
 }
