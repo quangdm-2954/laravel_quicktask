@@ -16,6 +16,7 @@ use App\Http\Controllers\LangController;
 |
 */
 Route::resource('users', UserController::class)->middleware('checkAdmin');
+Route::get('/users/{users}/posts',[UserController::class,'getPostsByUser'])->middleware('checkAdmin')->name('users.posts');
 Route::prefix('posts')->name('posts.')->controller(PostController::class)->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/', 'store')->name('store');
